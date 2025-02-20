@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    table {
+ width: 100%;
+ margin-bottom: 20px;
+ border: 1px solid #dddddd;
+ border-collapse: collapse; 
+}
+table th {
+ font-weight: bold;
+ padding: 5px;
+ background: #efefef;
+ border: 1px solid #dddddd;
+}
+table td {
+ border: 1px solid #dddddd;
+ padding: 5px; 
+}
+span{
+  text-align: center;
+}
+td:hover{
+  background-color: aqua;
+}
+button {
+    margin-top: 10px;
+    background-color: #008CBA;
+    border-radius: 4px;
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+} 
+
+  </style>
+</head>
+<body>
+  <header>
+    <form>
+      <label>Месяц</label>
+      <select class="month" name="select">
+        <option value="" selected>Выберите месяц</option>
+      </select>
+    </form>
+    <form>
+      <label>Год</label>
+      <select class="year" name="select" >
+        <option value="" selected>Выберите год</option>
+      </select>
+    </form>
+    <button class="btnCreate">Создать</button>
+    <button class="btnDelete">Удалить</button>
+  </header>
+    <tbody id="calendar"></tbody>
+  </table>
+   <script>
+const chooseMonth = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+const chooseYear = [];
+
+// Заполняем список годов
+let selectYear = document.querySelector('.year');
+for (let year = 1980; year <= 2024; year++) {
+  chooseYear.push(year.toString());
+  selectYear.insertAdjacentHTML('beforeend', `<option value='${year}'>${year}</option>`);
+}
+
+// Заполняем список месяцев
+let selectMonth = document.querySelector('.month');
+for (let m = 0; m < chooseMonth.length; m++) {
+  selectMonth.insertAdjacentHTML('beforeend', `<option value='${m + 1}'>${chooseMonth[m]}</option>`);
+}
+
+// Делаем кнопку "Создать" недоступной по умолчанию
+let btnCreate = document.querySelector('.btnCreate');
+btnCreate.setAttribute('disabled', '');
+
+// Делаем кнопку "Удалить" недоступной по умолчанию
+let btnDelete = document.querySelector('.btnDelete');
+btnDelete.setAttribute('disabled', '');
+
+// Функция для обновления состояния кнопки "Создать"
+function updateValues() {
+  let year = selectYear.value;
+  let month = selectMonth.value;
+
+  // Проверка на заполненность значений
+  if (year && month) {
+    btnCreate.removeAttribute('disabled');
+  } else {
+    btnCreate.setAttribute('disabled', '');
+  }
+}
+
+// Слушатели событий на изменение значений
+selectYear.addEventListener('change', updateValues);
+selectMonth.addEventListener('change', updateValues);
+
+// Массив для хранения созданных календарей
+let calendars = [];
+
+// Функция для генерации календаря
+function generateCalendar(year, month) {
+  const calendarContainer = document.createElement('div'); // Создаем контейнер для календаря
+  calendarContainer.classList.add('calendar-container'); // Добавляем класс для стилизации
+
+  const header = document.createElement('span'); // Создаем заголовок
+  header.textContent = `${chooseMonth[month - 1]} ${year} года`;
+  calendarContainer.appendChild(header);
+
+  const table = document.createElement('table'); // Создаем таблицу
+  const tbody = document.createElement('tbody');
+  tbody.id = 'calendar';
+
+  // Заголовок дней недели
+  const daysOfWeek = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
+  const headerRow = document.createElement('tr');
+  daysOfWeek.forEach(day => {
+    const th = document.createElement('td');
+    th.textContent = day;
+    headerRow.appendChild(th);
+  });
+  tbody.appendChild(headerRow);
+
+  const firstDay = new Date(year, month - 1, 1).getDay(); // День недели первого числа месяца
+  const daysInMonth = new Date(year, month, 0).getDate(); // Количество дней в месяце
+
+  let dateOne = 1; // Начинаем с первого числа месяца
+  let row = document.createElement('tr');
+// Пустые ячейки до начала месяца
+for (let i = 1; i < (firstDay || 7); i++) {
+    row.appendChild(document.createElement('td'));
+  }
+
+  // Заполняем числа месяца
+  for (let i = firstDay || 7; i <= 7; i++) {
+    const td = document.createElement('td');
+    td.textContent = dateOne;
+    td.setAttribute('tabindex', '0');
+    row.appendChild(td);
+    td.addEventListener('click', function(){
+    td.setAttribute('style', 'background-color: aqua;')
+})
+td.addEventListener('blur', function(){
+    td.removeAttribute('style')
+})
+    dateOne++;
+  }
+  tbody.appendChild(row); // Завершаем первую строку
+
+  // Заполняем оставшиеся строки
+  while (dateOne <= daysInMonth) {
+    row = document.createElement('tr');
+    for (let i = 1; i <= 7; i++) {
+      const td = document.createElement('td');
+      td.addEventListener('click', function(){
+  td.setAttribute('style', 'background-color: aqua;')
+})
+      if (dateOne <= daysInMonth) {
+        td.textContent = dateOne;
+        dateOne++;
+      }
+      row.appendChild(td);
+    }
+    tbody.appendChild(row); // Добавляем строку в таблицу
+  }
+
+  table.appendChild(tbody);
+  calendarContainer.appendChild(table); // Добавляем таблицу в контейнер
+
+  // Добавляем календарь в массив и на страницу
+  calendars.push(calendarContainer);
+  document.body.appendChild(calendarContainer);
+
+  // Активируем кнопку "Удалить"
+  btnDelete.removeAttribute('disabled');
+  table.addEventListener('click', function (event) {
+  const target = event.target;
+  if (target.tagName === 'TD') {
+    // Убираем фон у всех ячеек
+    const allTds = table.querySelectorAll('td');
+    allTds.forEach(td => td.removeAttribute('style'));
+
+    // Устанавливаем фон для текущей ячейки
+    target.setAttribute('style', 'background-color: aqua;');
+  }
+});
+}
+
+// Обработка клика по кнопке "Создать"
+btnCreate.addEventListener('click', () => {
+  let year = selectYear.value;
+  let month = selectMonth.value;
+  if (year && month) {
+    generateCalendar(year, month);
+  }
+});
+
+// Обработка клика по кнопке "Удалить"
+btnDelete.addEventListener('click', () => {
+  if (calendars.length > 0) {
+    const firstCalendar = calendars.shift(); // Удаляем первый календарь из массива
+    firstCalendar.remove(); // Удаляем его из DOM
+  }
+
+  // Деактивируем кнопку "Удалить", если календарей нет
+  if (calendars.length === 0) {
+    btnDelete.setAttribute('disabled', '');
+  }
+});
+   </script>
+</body>
+</html>
